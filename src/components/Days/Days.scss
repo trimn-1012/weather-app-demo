@@ -1,0 +1,26 @@
+.days {
+  min-width: 100px;
+  padding: 4px 8px;
+  font-weight: bolder;
+  font-size: 18px;
+  color: rgb(204, 202, 202);
+  border-radius: 8px;
+  background-color: transparent;
+  transition: 0.4s;
+  cursor: pointer;
+  text-align: center;
+
+  &:not(:first-child) {
+    margin-left: 40px;
+  }
+
+  &:hover {
+    color: white;
+    background-color: gray;
+  }
+
+  &.active {
+    color: white;
+    background-color: gray;
+  }
+}
