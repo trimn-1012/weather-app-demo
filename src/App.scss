@@ -1,16 +1,22 @@
+.App {
+  display: flex;
+  align-items: center;
+  height: 100vh;
+}
+
 .containerWeather {
   width: 1100px;
   height: 600px;
   border: 6px solid rgb(27, 23, 23);
   border-radius: 12px;
   margin: auto;
-  margin-top: 100px;
   padding: 20px 30px;
   background: url(./images/background.jpg) no-repeat center;
   background-size: cover;
   position: relative;
   color: white;
   box-shadow: 0 20px 50px 0 rgb(15, 15, 15);
+  // -webkit-box-reflect: below 2px linear-gradient(to top, transparent, white);
 
   &__background {
     position: absolute;
@@ -19,7 +25,12 @@
     top: 0;
     left: 0;
     background: black;
-    background: linear-gradient(180deg, black 0%, rgb(32, 32, 32) 64%, rgb(71, 70, 70) 100%);
+    background: linear-gradient(
+      180deg,
+      black 0%,
+      rgb(32, 32, 32) 64%,
+      rgb(71, 70, 70) 100%
+    );
     opacity: 0.35;
     z-index: 1;
   }
@@ -37,10 +48,6 @@
       display: flex;
       width: 100%;
       overflow: hidden;
-
-      &:hover {
-        overflow-x: scroll;
-      }
     }
   }
 }
@@ -61,4 +68,16 @@
 
 .cursor-poiter {
   cursor: pointer;
+}
+
+#locationForm {
+  display: none;
+}
+
+#blockHours {
+  cursor: pointer;
+  
+  &.active {
+    cursor: grabbing;
+  }
 }

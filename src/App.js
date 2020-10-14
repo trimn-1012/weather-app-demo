@@ -19,9 +19,10 @@ import clouds from "./images/clouds-gif.gif";
 import sunnyGif from "./images/sunny-gif.gif";
 import $ from "jquery";
 import Loading from "./components/Loading/Loading";
+import Input from "./components/Input/Input";
 
 const key = "97fa134ece674729a8750505201210";
-const url = "http://api.weatherapi.com/v1/forecast.json";
+const url = "https://api.weatherapi.com/v1/forecast.json";
 
 function getLongDay(time) {
   return new Date(time).toLocaleString("default", {
@@ -29,18 +30,67 @@ function getLongDay(time) {
   });
 }
 
+function scrollHour(element) {
+  const scroller = $(element);
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+  const limitScroll = scroller.offset();
+  const positionCurrentTime = -($(".block-time.active").offset().left - 700);
+
+  if (positionCurrentTime < limitScroll.left - 1872) {
+    scroller.offset({ left: -1750 });
+  } else if (positionCurrentTime > limitScroll.left) {
+    scroller.offset({ left: 119.5 });
+  } else {
+    scroller.offset({ left: positionCurrentTime });
+  }
+
+  scroller.on("mousedown", (e) => {
+    isDown = true;
+    scroller.addClass("active");
+    startX = e.pageX - scroller.offset().left;
+    scrollLeft = scroller.offset().left;
+  });
+
+  scroller.on("mouseleave", () => {
+    isDown = false;
+    scroller.removeClass("active");
+  });
+
+  scroller.on("mouseup", () => {
+    isDown = false;
+    scroller.removeClass("active");
+  });
+
+  scroller.on("mousemove", (e) => {
+    e.preventDefault();
+    if (!isDown) {
+      return;
+    }
+    const traversed = (e.pageX - scroller.offset().left - startX) * 1;
+    const scrollTo = scrollLeft + traversed;
+    if (scrollTo > limitScroll.left || scrollTo < limitScroll.left - 1872) {
+      return;
+    }
+    scroller.offset({ left: scrollTo });
+  });
+}
+
 function App() {
   const [query, setQuery] = useState("");
   const [weatherInfo, setWeatherInfo] = useState(null);
   const [dataRes, setDataRes] = useState(null);
+  const [limitedScroll, setLimitedScroll] = useState(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        console.log(position);
         let { latitude, longitude } = position.coords;
         setQuery(`${latitude}, ${longitude}`);
       });
+    } else {
+      setQuery("da nang");
     }
   }, []);
 
@@ -103,7 +153,10 @@ function App() {
         statusOfWeather.includes("blizzard")
       ) {
         $("#container").css("background-image", `url(${snow})`);
-      } else if (statusOfWeather.includes("sunny")) {
+      } else if (
+        statusOfWeather.includes("sunny") ||
+        statusOfWeather.includes("clear")
+      ) {
         $("#container").css("background-image", `url(${sunnyGif})`);
       } else if (statusOfWeather.includes("cloudy")) {
         $("#container").css("background-image", `url(${clouds})`);
@@ -111,7 +164,18 @@ function App() {
         $("#container").css("background-image", `url(${background})`);
       }
     }
+
+    if (limitedScroll === null && weatherInfo !== null) {
+      setLimitedScroll("limited");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weatherInfo]);
+
+  useEffect(() => {
+    if (limitedScroll !== null) {
+      scrollHour("#blockHours");
+    }
+  }, [limitedScroll]);
 
   const onHandleDay = (e) => {
     const today = getLongDay(new Date());
@@ -165,6 +229,13 @@ function App() {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setQuery($(e.target).find("input").val());
+    setWeatherInfo(null);
+    setLimitedScroll(null);
+  };
+
   return (
     <>
       {weatherInfo ? (
@@ -187,8 +258,18 @@ function App() {
                     alt="location"
                     className="icons icons--small"
                   />
-                  <p className="mb-0 ml-2">Change Location</p>
+                  <p
+                    className="mb-0 ml-2"
+                    onClick={() => {
+                      $("#locationForm").slideToggle();
+                    }}
+                  >
+                    Change Location
+                  </p>
                 </div>
+                <form onSubmit={handleSubmit} id="locationForm">
+                  <Input label="Location" name="location" />
+                </form>
               </div>
               <div className="d-flex flex-column mt-4">
                 <WeatherProperty
@@ -225,17 +306,26 @@ function App() {
                 ))}
               </div>
               <div className="containerWeather__bottom__hours">
-                <div className="d-flex mb-3">
-                  {weatherInfo.hours.hour.map((item) => (
-                    <Hours
-                      time={item.time.slice(11, 16)}
-                      temperature={item.temp_c}
-                      feelLike={item.feelslike_c}
-                      rain={item.chance_of_rain}
-                      image={item.condition.icon}
-                      key={item.time_epoch}
-                    />
-                  ))}
+                <div className="d-flex mb-3" id="blockHours">
+                  {weatherInfo.hours.hour.map((item) => {
+                    const currentDate = new Date(dataRes.location.localtime);
+                    const timeLine = new Date(item.time);
+                    return (
+                      <Hours
+                        time={item.time}
+                        temperature={item.temp_c}
+                        feelLike={item.feelslike_c}
+                        rain={item.chance_of_rain}
+                        image={item.condition.icon}
+                        key={item.time_epoch}
+                        active={
+                          currentDate.getDate() !== timeLine.getDate()
+                            ? false
+                            : currentDate.getHours() === timeLine.getHours()
+                        }
+                      />
+                    );
+                  })}
                 </div>
               </div>
             </div>
