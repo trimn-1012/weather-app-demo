@@ -20,12 +20,13 @@ import sunnyGif from "./images/sunny-gif.gif";
 import $ from "jquery";
 import Loading from "./components/Loading/Loading";
 import Input from "./components/Input/Input";
+import removeVietnamese from "./common/removeVietnamese";
 
 const key = "97fa134ece674729a8750505201210";
 const url = "https://api.weatherapi.com/v1/forecast.json";
 
 function getLongDay(time) {
-  return new Date(time).toLocaleString("default", {
+  return new Date(time).toLocaleString("vi", {
     weekday: "long",
   });
 }
@@ -36,12 +37,19 @@ function scrollHour(element) {
   let startX;
   let scrollLeft;
   const limitScroll = scroller.offset();
-  const positionCurrentTime = -($(".block-time.active").offset().left - 700);
+  const minScroll = limitScroll.left;
+  const maxScroll =
+    limitScroll.left -
+    (scroller.width() - $(".containerWeather__bottom__hours").width());
+  const positionCurrentTime = -(
+    $(".block-time.active").offset().left -
+    ($(".block-time.4").offset().left + minScroll)
+  );
 
-  if (positionCurrentTime < limitScroll.left - 1872) {
-    scroller.offset({ left: -1750 });
-  } else if (positionCurrentTime > limitScroll.left) {
-    scroller.offset({ left: 119.5 });
+  if (positionCurrentTime >= minScroll) {
+    scroller.offset({ left: minScroll });
+  } else if (positionCurrentTime <= maxScroll) {
+    scroller.offset({ left: maxScroll });
   } else {
     scroller.offset({ left: positionCurrentTime });
   }
@@ -70,7 +78,7 @@ function scrollHour(element) {
     }
     const traversed = (e.pageX - scroller.offset().left - startX) * 1;
     const scrollTo = scrollLeft + traversed;
-    if (scrollTo > limitScroll.left || scrollTo < limitScroll.left - 1872) {
+    if (scrollTo > minScroll || scrollTo < maxScroll) {
       return;
     }
     scroller.offset({ left: scrollTo });
@@ -84,7 +92,12 @@ function App() {
   const [limitedScroll, setLimitedScroll] = useState(null);
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    const urlParams = new URLSearchParams(window.location.search).get(
+      "location"
+    );
+    if (urlParams !== null) {
+      setQuery(removeVietnamese(urlParams));
+    } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         let { latitude, longitude } = position.coords;
         setQuery(`${latitude}, ${longitude}`);
@@ -96,74 +109,76 @@ function App() {
 
   useEffect(() => {
     if (query) {
-      Axios.get(`${url}?key=${key}&q=${query}&days=3`).then((res) => {
-        const { data } = res;
-        setDataRes(data);
-        setTimeout(() => {
-          const info = {
-            location: {
-              country: data.location.country,
-              name: data.location.name,
-              localtime: data.location.localtime,
-            },
-            temp_c: data.current.temp_c,
-            uv: data.current.uv,
-            humidity: data.current.humidity,
-            daily_chance_of_rain:
-              data.forecast.forecastday[0].day.daily_chance_of_rain,
-            wind_kph: data.current.wind_kph,
-            condition: data.current.condition,
-            days: data.forecast.forecastday.map((item) =>
-              getLongDay(item.date)
-            ),
-            dayActive: getLongDay(data.location.localtime),
-            hours: data.forecast.forecastday.find((item) => {
-              return (
-                getLongDay(item.date) === getLongDay(data.location.localtime)
-              );
-            }),
-          };
-          setWeatherInfo(info);
-        }, 1000);
-      });
+      Axios.get(`${url}?key=${key}&q=${query}&days=3&lang=vi`)
+        .then((res) => {
+          const { data } = res;
+          setDataRes(data);
+          setTimeout(() => {
+            const info = {
+              location: {
+                country: data.location.country,
+                name: data.location.name,
+                localtime: data.location.localtime,
+              },
+              temp_c: data.current.temp_c,
+              uv: data.current.uv,
+              humidity: data.current.humidity,
+              daily_chance_of_rain:
+                data.forecast.forecastday[0].day.daily_chance_of_rain,
+              wind_kph: data.current.wind_kph,
+              condition: data.current.condition,
+              days: data.forecast.forecastday.map((item) => {
+                if (
+                  getLongDay(item.date) === getLongDay(data.location.localtime)
+                ) {
+                  return "Hôm nay";
+                }
+                return getLongDay(item.date);
+              }),
+              dayActive: "Hôm nay",
+              hours: data.forecast.forecastday.find((item) => {
+                return (
+                  getLongDay(item.date) === getLongDay(data.location.localtime)
+                );
+              }),
+            };
+            setWeatherInfo(info);
+          }, 1000);
+        })
+        .catch(() => {
+          alert("Địa điểm này không tồn tại");
+          navigator.geolocation.getCurrentPosition((position) => {
+            let { latitude, longitude } = position.coords;
+            setQuery(`${latitude}, ${longitude}`);
+          });
+        });
     }
   }, [query]);
 
   useEffect(() => {
-    if (weatherInfo) {
-      const statusOfWeather = weatherInfo.condition.text.toLowerCase();
-      if (statusOfWeather.includes("thunder")) {
-        $("#container").css("background-image", `url(${thundery})`);
-      } else if (
-        statusOfWeather.includes("rain") ||
-        statusOfWeather.includes("sleet") ||
-        statusOfWeather.includes("drizzle") ||
-        statusOfWeather.includes("ice")
-      ) {
-        $("#container").css("background-image", `url(${rainGif})`);
-      } else if (statusOfWeather.includes("overcast")) {
-        $("#container").css("background-image", `url(${overcast})`);
-      } else if (
-        statusOfWeather.includes("fog") ||
-        statusOfWeather.includes("mist")
-      ) {
-        $("#container").css("background-image", `url(${fog})`);
-      } else if (
-        statusOfWeather.includes("snow") ||
-        statusOfWeather.includes("blizzard")
-      ) {
-        $("#container").css("background-image", `url(${snow})`);
-      } else if (
-        statusOfWeather.includes("sunny") ||
-        statusOfWeather.includes("clear")
-      ) {
-        $("#container").css("background-image", `url(${sunnyGif})`);
-      } else if (statusOfWeather.includes("cloudy")) {
-        $("#container").css("background-image", `url(${clouds})`);
-      } else {
-        $("#container").css("background-image", `url(${background})`);
-      }
-    }
+    // if (weatherInfo) {
+    //   const statusOfWeather = weatherInfo.condition.text.toLowerCase();
+    //   if (statusOfWeather.includes("sấm")) {
+    //     $("#container").css("background-image", `url(${thundery})`);
+    //   } else if (statusOfWeather.includes("mưa")) {
+    //     $("#container").css("background-image", `url(${rainGif})`);
+    //   } else if (statusOfWeather.includes("u ám")) {
+    //     $("#container").css("background-image", `url(${overcast})`);
+    //   } else if (statusOfWeather.includes("sương")) {
+    //     $("#container").css("background-image", `url(${fog})`);
+    //   } else if (statusOfWeather.includes("tuyết")) {
+    //     $("#container").css("background-image", `url(${snow})`);
+    //   } else if (
+    //     statusOfWeather.includes("nắng") ||
+    //     statusOfWeather.includes("quang")
+    //   ) {
+    //     $("#container").css("background-image", `url(${sunnyGif})`);
+    //   } else if (statusOfWeather.includes("mây")) {
+    //     $("#container").css("background-image", `url(${clouds})`);
+    //   } else {
+    //     $("#container").css("background-image", `url(${background})`);
+    //   }
+    // }
 
     if (limitedScroll === null && weatherInfo !== null) {
       setLimitedScroll("limited");
@@ -178,9 +193,38 @@ function App() {
   }, [limitedScroll]);
 
   const onHandleDay = (e) => {
-    const today = getLongDay(new Date());
     const dayActive = $(e.target).text();
-    if (dayActive !== today) {
+    if (dayActive === "Hôm nay") {
+      const info = {
+        location: {
+          country: dataRes.location.country,
+          name: dataRes.location.name,
+          localtime: dataRes.location.localtime,
+        },
+        temp_c: dataRes.current.temp_c,
+        uv: dataRes.current.uv,
+        humidity: dataRes.current.humidity,
+        daily_chance_of_rain:
+          dataRes.forecast.forecastday[0].day.daily_chance_of_rain,
+        wind_kph: dataRes.current.wind_kph,
+        condition: dataRes.current.condition,
+        days: dataRes.forecast.forecastday.map((item) => {
+          if (
+            getLongDay(item.date) === getLongDay(dataRes.location.localtime)
+          ) {
+            return "Hôm nay";
+          }
+          return getLongDay(item.date);
+        }),
+        dayActive: "Hôm nay",
+        hours: dataRes.forecast.forecastday.find((item) => {
+          return (
+            getLongDay(item.date) === getLongDay(dataRes.location.localtime)
+          );
+        }),
+      };
+      setWeatherInfo(info);
+    } else {
       const objDay = dataRes.forecast.forecastday.find((item) => {
         return getLongDay(item.date) === dayActive;
       });
@@ -196,44 +240,21 @@ function App() {
         daily_chance_of_rain: objDay.day.daily_chance_of_rain,
         wind_kph: objDay.day.maxwind_kph,
         condition: objDay.day.condition,
-        days: dataRes.forecast.forecastday.map((item) => getLongDay(item.date)),
+        days: dataRes.forecast.forecastday.map((item) => {
+          if (
+            getLongDay(item.date) === getLongDay(dataRes.location.localtime)
+          ) {
+            return "Hôm nay";
+          }
+          return getLongDay(item.date);
+        }),
         dayActive: getLongDay(objDay.date),
         hours: {
           hour: objDay.hour,
         },
       };
       setWeatherInfo(info);
-    } else {
-      const info = {
-        location: {
-          country: dataRes.location.country,
-          name: dataRes.location.name,
-          localtime: dataRes.location.localtime,
-        },
-        temp_c: dataRes.current.temp_c,
-        uv: dataRes.current.uv,
-        humidity: dataRes.current.humidity,
-        daily_chance_of_rain:
-          dataRes.forecast.forecastday[0].day.daily_chance_of_rain,
-        wind_kph: dataRes.current.wind_kph,
-        condition: dataRes.current.condition,
-        days: dataRes.forecast.forecastday.map((item) => getLongDay(item.date)),
-        dayActive: getLongDay(dataRes.location.localtime),
-        hours: dataRes.forecast.forecastday.find((item) => {
-          return (
-            getLongDay(item.date) === getLongDay(dataRes.location.localtime)
-          );
-        }),
-      };
-      setWeatherInfo(info);
     }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setQuery($(e.target).find("input").val());
-    setWeatherInfo(null);
-    setLimitedScroll(null);
   };
 
   return (
@@ -250,7 +271,7 @@ function App() {
                   className="icons"
                 />
                 <h3 className="mb-0">{weatherInfo.condition.text}</h3>
-                <h6>{`${weatherInfo.location.name} City - ${weatherInfo.location.country}`}</h6>
+                <h6>{`${weatherInfo.location.name} - ${weatherInfo.location.country}`}</h6>
                 <h1 className="font-weight-bolder">{weatherInfo.temp_c} °C</h1>
                 <div className="d-flex align-items-center cursor-poiter">
                   <img
@@ -262,12 +283,13 @@ function App() {
                     className="mb-0 ml-2"
                     onClick={() => {
                       $("#locationForm").slideToggle();
+                      $("#locationForm").find("input").focus();
                     }}
                   >
-                    Change Location
+                    Thay đổi địa điểm
                   </p>
                 </div>
-                <form onSubmit={handleSubmit} id="locationForm">
+                <form id="locationForm">
                   <Input label="Location" name="location" />
                 </form>
               </div>
@@ -279,17 +301,17 @@ function App() {
                 />
                 <WeatherProperty
                   icon={humidity}
-                  title="Humidity"
+                  title="Độ ẩm"
                   content={weatherInfo.humidity + " %"}
                 />
                 <WeatherProperty
                   icon={cloudRain}
-                  title="Chance of Rain"
+                  title="Có thể mưa"
                   content={weatherInfo.daily_chance_of_rain + " %"}
                 />
                 <WeatherProperty
                   icon={windy}
-                  title="Wind Speed"
+                  title="Tốc độ gió"
                   content={weatherInfo.wind_kph + " km/h"}
                 />
               </div>

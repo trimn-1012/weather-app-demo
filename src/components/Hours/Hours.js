@@ -19,9 +19,11 @@ export default function Hours({
       </div>
       <p className="block-time__temperature">{temperature} °C</p>
       <div className="block-time__details">
-        <p>Feel like {feelLike}°C</p>
         <p>
-          Chance of Rain <strong>{rain} %</strong>
+          Cảm giác như <strong>{feelLike}°C</strong>
+        </p>
+        <p>
+          Có thể sẽ mưa <strong>{rain} %</strong>
         </p>
       </div>
     </div>
