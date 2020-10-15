@@ -98,12 +98,15 @@ function App() {
     if (urlParams !== null) {
       setQuery(removeVietnamese(urlParams));
     } else if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        let { latitude, longitude } = position.coords;
-        setQuery(`${latitude}, ${longitude}`);
-      });
-    } else {
-      setQuery("da nang");
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          let { latitude, longitude } = position.coords;
+          setQuery(`${latitude}, ${longitude}`);
+        },
+        (err) => {
+          setQuery("da nang");
+        }
+      );
     }
   }, []);
 
