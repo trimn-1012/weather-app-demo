@@ -158,7 +158,10 @@ function App() {
   useEffect(() => {
     if (weatherInfo) {
       const statusOfWeather = weatherInfo.condition.text.toLowerCase();
-      if (statusOfWeather.includes("sấm")) {
+      if (
+        statusOfWeather.includes("sấm") ||
+        statusOfWeather.includes("giông")
+      ) {
         $("#container").css("background-image", `url(${thundery})`);
       } else if (statusOfWeather.includes("mưa")) {
         $("#container").css("background-image", `url(${rainGif})`);
