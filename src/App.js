@@ -169,32 +169,32 @@ function App() {
   }, [query]);
 
   useEffect(() => {
-    if (weatherInfo) {
-      const statusOfWeather = weatherInfo.condition.text.toLowerCase();
-      if (
-        statusOfWeather.includes("sấm") ||
-        statusOfWeather.includes("giông")
-      ) {
-        $("#container").css("background-image", `url(${thundery})`);
-      } else if (statusOfWeather.includes("mưa")) {
-        $("#container").css("background-image", `url(${rainGif})`);
-      } else if (statusOfWeather.includes("u ám")) {
-        $("#container").css("background-image", `url(${overcast})`);
-      } else if (statusOfWeather.includes("sương")) {
-        $("#container").css("background-image", `url(${fog})`);
-      } else if (statusOfWeather.includes("tuyết")) {
-        $("#container").css("background-image", `url(${snow})`);
-      } else if (
-        statusOfWeather.includes("nắng") ||
-        statusOfWeather.includes("quang")
-      ) {
-        $("#container").css("background-image", `url(${sunnyGif})`);
-      } else if (statusOfWeather.includes("mây")) {
-        $("#container").css("background-image", `url(${clouds})`);
-      } else {
-        $("#container").css("background-image", `url(${background})`);
-      }
-    }
+    // if (weatherInfo) {
+    //   const statusOfWeather = weatherInfo.condition.text.toLowerCase();
+    //   if (
+    //     statusOfWeather.includes("sấm") ||
+    //     statusOfWeather.includes("giông")
+    //   ) {
+    //     $("#container").css("background-image", `url(${thundery})`);
+    //   } else if (statusOfWeather.includes("mưa")) {
+    //     $("#container").css("background-image", `url(${rainGif})`);
+    //   } else if (statusOfWeather.includes("u ám")) {
+    //     $("#container").css("background-image", `url(${overcast})`);
+    //   } else if (statusOfWeather.includes("sương")) {
+    //     $("#container").css("background-image", `url(${fog})`);
+    //   } else if (statusOfWeather.includes("tuyết")) {
+    //     $("#container").css("background-image", `url(${snow})`);
+    //   } else if (
+    //     statusOfWeather.includes("nắng") ||
+    //     statusOfWeather.includes("quang")
+    //   ) {
+    //     $("#container").css("background-image", `url(${sunnyGif})`);
+    //   } else if (statusOfWeather.includes("mây")) {
+    //     $("#container").css("background-image", `url(${clouds})`);
+    //   } else {
+    //     $("#container").css("background-image", `url(${background})`);
+    //   }
+    // }
 
     if (limitedScroll === null && weatherInfo !== null) {
       setLimitedScroll("limited");
@@ -306,32 +306,30 @@ function App() {
                   </p>
                 </div>
                 <div className="form-location">
-                  <div className="d-flex align-items-end">
-                    <form id="locationForm">
-                      <Input label="Location" name="location" />
-                    </form>
-                    <img
-                      src={currentLocation}
-                      alt="location current"
-                      className="ml-3 icons icons--medium cursor-poiter"
-                      onClick={() => {
-                        navigator.geolocation.getCurrentPosition(
-                          (position) => {
-                            let { latitude, longitude } = position.coords;
-                            setQuery(`${latitude}, ${longitude}`);
-                            window.location.href = `/?location=${latitude}, ${longitude}`;
-                          },
-                          (err) => {
-                            alert(
-                              "Hãy cho phép truy cập vào location của bạn ở trình duyệt !!!"
-                            );
-                            window.location.href = "/?location=da nang";
-                          }
-                        );
-                      }}
-                    />
-                  </div>
+                  <form id="locationForm">
+                    <Input label="Location" name="location" />
+                  </form>
                 </div>
+                <img
+                  src={currentLocation}
+                  alt="location current"
+                  className="icons icons--medium current-location"
+                  onClick={() => {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        let { latitude, longitude } = position.coords;
+                        setQuery(`${latitude}, ${longitude}`);
+                        window.location.href = `/?location=${latitude}, ${longitude}`;
+                      },
+                      (err) => {
+                        alert(
+                          "Hãy cho phép truy cập vào location của bạn ở trình duyệt !!!"
+                        );
+                        window.location.href = "/?location=da nang";
+                      }
+                    );
+                  }}
+                />
               </div>
               <div className="d-flex flex-column mt-4">
                 <WeatherProperty

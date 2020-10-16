@@ -82,3 +82,17 @@
     cursor: grabbing;
   }
 }
+
+.current-location {
+  position: absolute;
+  top: 290px;
+  z-index: 2;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all .4s;
+  background-color: transparent;
+  
+  &:hover {
+    box-shadow: 0 0 20px 0 whitesmoke;
+  }
+}
