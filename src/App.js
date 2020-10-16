@@ -98,7 +98,11 @@ function App() {
     );
     if (urlParams !== null) {
       if (isNaN(parseInt(urlParams.slice(0, 1)))) {
-        setQuery(removeVietnamese(urlParams));
+        if (urlParams === "huế") {
+          setQuery(urlParams);
+        } else {
+          setQuery(removeVietnamese(urlParams));
+        }
       } else {
         setQuery(urlParams);
       }
