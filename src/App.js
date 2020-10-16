@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Axios from "axios";
 import "./App.scss";
 import location from "./images/location.svg";
+import currentLocation from "./images/currentLocation.svg";
 import humidity from "./images/humidity.svg";
 import uv from "./images/uv.svg";
 import windy from "./images/windy.svg";
@@ -96,7 +97,11 @@ function App() {
       "location"
     );
     if (urlParams !== null) {
-      setQuery(removeVietnamese(urlParams));
+      if (isNaN(parseInt(urlParams.slice(0, 1)))) {
+        setQuery(removeVietnamese(urlParams));
+      } else {
+        setQuery(urlParams);
+      }
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -150,10 +155,15 @@ function App() {
         })
         .catch(() => {
           alert("Địa điểm này không tồn tại");
-          navigator.geolocation.getCurrentPosition((position) => {
-            let { latitude, longitude } = position.coords;
-            setQuery(`${latitude}, ${longitude}`);
-          });
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              let { latitude, longitude } = position.coords;
+              setQuery(`${latitude}, ${longitude}`);
+            },
+            (err) => {
+              setQuery("da nang");
+            }
+          );
         });
     }
   }, [query]);
@@ -288,16 +298,40 @@ function App() {
                   <p
                     className="mb-0 ml-2"
                     onClick={() => {
-                      $("#locationForm").slideToggle();
+                      $(".form-location").slideToggle();
                       $("#locationForm").find("input").focus();
                     }}
                   >
                     Thay đổi địa điểm
                   </p>
                 </div>
-                <form id="locationForm">
-                  <Input label="Location" name="location" />
-                </form>
+                <div className="form-location">
+                  <div className="d-flex align-items-end">
+                    <form id="locationForm">
+                      <Input label="Location" name="location" />
+                    </form>
+                    <img
+                      src={currentLocation}
+                      alt="location current"
+                      className="ml-3 icons icons--medium cursor-poiter"
+                      onClick={() => {
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            let { latitude, longitude } = position.coords;
+                            setQuery(`${latitude}, ${longitude}`);
+                            window.location.href = `/?location=${latitude}, ${longitude}`;
+                          },
+                          (err) => {
+                            alert(
+                              "Hãy cho phép truy cập vào location của bạn ở trình duyệt !!!"
+                            );
+                            window.location.href = "/?location=da nang";
+                          }
+                        );
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
               <div className="d-flex flex-column mt-4">
                 <WeatherProperty
@@ -334,7 +368,7 @@ function App() {
                 ))}
               </div>
               <div className="containerWeather__bottom__hours">
-                <div className="d-flex mb-3" id="blockHours">
+                <div className="d-flex" id="blockHours">
                   {weatherInfo.hours.hour.map((item) => {
                     const currentDate = new Date(dataRes.location.localtime);
                     const timeLine = new Date(item.time);
