@@ -169,32 +169,32 @@ function App() {
   }, [query]);
 
   useEffect(() => {
-    // if (weatherInfo) {
-    //   const statusOfWeather = weatherInfo.condition.text.toLowerCase();
-    //   if (
-    //     statusOfWeather.includes("sấm") ||
-    //     statusOfWeather.includes("giông")
-    //   ) {
-    //     $("#container").css("background-image", `url(${thundery})`);
-    //   } else if (statusOfWeather.includes("mưa")) {
-    //     $("#container").css("background-image", `url(${rainGif})`);
-    //   } else if (statusOfWeather.includes("u ám")) {
-    //     $("#container").css("background-image", `url(${overcast})`);
-    //   } else if (statusOfWeather.includes("sương")) {
-    //     $("#container").css("background-image", `url(${fog})`);
-    //   } else if (statusOfWeather.includes("tuyết")) {
-    //     $("#container").css("background-image", `url(${snow})`);
-    //   } else if (
-    //     statusOfWeather.includes("nắng") ||
-    //     statusOfWeather.includes("quang")
-    //   ) {
-    //     $("#container").css("background-image", `url(${sunnyGif})`);
-    //   } else if (statusOfWeather.includes("mây")) {
-    //     $("#container").css("background-image", `url(${clouds})`);
-    //   } else {
-    //     $("#container").css("background-image", `url(${background})`);
-    //   }
-    // }
+    if (weatherInfo) {
+      const statusOfWeather = weatherInfo.condition.text.toLowerCase();
+      if (
+        statusOfWeather.includes("sấm") ||
+        statusOfWeather.includes("giông")
+      ) {
+        $("#container").css("background-image", `url(${thundery})`);
+      } else if (statusOfWeather.includes("mưa")) {
+        $("#container").css("background-image", `url(${rainGif})`);
+      } else if (statusOfWeather.includes("u ám")) {
+        $("#container").css("background-image", `url(${overcast})`);
+      } else if (statusOfWeather.includes("sương")) {
+        $("#container").css("background-image", `url(${fog})`);
+      } else if (statusOfWeather.includes("tuyết")) {
+        $("#container").css("background-image", `url(${snow})`);
+      } else if (
+        statusOfWeather.includes("nắng") ||
+        statusOfWeather.includes("quang")
+      ) {
+        $("#container").css("background-image", `url(${sunnyGif})`);
+      } else if (statusOfWeather.includes("mây")) {
+        $("#container").css("background-image", `url(${clouds})`);
+      } else {
+        $("#container").css("background-image", `url(${background})`);
+      }
+    }
 
     if (limitedScroll === null && weatherInfo !== null) {
       setLimitedScroll("limited");
